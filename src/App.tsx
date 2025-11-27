@@ -1,97 +1,31 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { User, Message, CommandItem } from './types';
+import type { CommandItem } from './types';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Conversation } from './components/Conversation';
 import { CommandPalette } from './components/CommandPalette';
-import { listUsers, createUser, getConversation, sendMessage as apiSendMessage, type ApiUser, type ApiMessage } from './api/api';
+import { useApp } from './context/AppContext';
 import './App.css';
 
-// Convert API user to UI User type
-function toUiUser(apiUser: ApiUser): User {
-  return {
-    id: String(apiUser.id),
-    username: apiUser.name,
-    status: 'online', // Default status since API doesn't provide it
-  };
-}
-
-// Convert API message to UI Message type
-function toUiMessage(apiMessage: ApiMessage): Message {
-  return {
-    id: String(apiMessage.id),
-    content: apiMessage.decrypted,
-    senderId: String(apiMessage.sender_id),
-    receiverId: String(apiMessage.recipient_id),
-    timestamp: new Date(apiMessage.timestamp),
-    status: 'delivered',
-    encrypted: true,
-  };
-}
-
 function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string | undefined>();
-  const [messages, setMessages] = useState<Record<string, Message[]>>({});
+  const {
+    currentUser,
+    users,
+    selectedUser,
+    selectedUserId,
+    messages,
+    isLoading,
+    error,
+    selectUser,
+    sendMessage,
+    addUser,
+    getLastMessage,
+  } = useApp();
+
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const selectedUser = users.find((u) => u.id === selectedUserId);
   const currentUserId = currentUser?.id || '';
-
-  // Fetch users from API on mount
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setIsLoading(true);
-        const apiUsers = await listUsers();
-        const uiUsers = apiUsers.map(toUiUser);
-        setUsers(uiUsers);
-        // Set the first user as the current (logged-in) user
-        if (uiUsers.length > 0 && !currentUser) {
-          setCurrentUser(uiUsers[0]);
-        }
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch users:', err);
-        setError('Failed to load users');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Fetch conversation when a user is selected
-  useEffect(() => {
-    if (!selectedUserId || !currentUser) return;
-
-    const fetchConversation = async () => {
-      try {
-        setIsLoading(true);
-        const apiMessages = await getConversation(
-          parseInt(currentUser.id, 10),
-          parseInt(selectedUserId, 10)
-        );
-        const uiMessages = apiMessages.map((m) => toUiMessage(m));
-        setMessages((prev) => ({
-          ...prev,
-          [selectedUserId]: uiMessages,
-        }));
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch conversation:', err);
-        // Don't set error state for conversation fetch - just show empty conversation
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchConversation();
-  }, [selectedUserId, currentUser]);
 
   // Filter out the current user from the contacts list
   const contactUsers = users.filter((u) => u.id !== currentUser?.id);
@@ -110,113 +44,26 @@ function App() {
   }, []);
 
   const handleSelectUser = useCallback((userId: string) => {
-    setSelectedUserId(userId);
+    selectUser(userId);
     // Close sidebar on mobile
     if (window.innerWidth <= 768) {
       setIsSidebarOpen(false);
     }
-  }, []);
+  }, [selectUser]);
 
   const handleSendMessage = useCallback(
     async (content: string) => {
-      if (!selectedUserId || !currentUser) return;
-
-      const tempId = `m${Date.now()}`;
-      const newMessage: Message = {
-        id: tempId,
-        content,
-        senderId: currentUser.id,
-        receiverId: selectedUserId,
-        timestamp: new Date(),
-        status: 'sending',
-        encrypted: true,
-      };
-
-      // Optimistically add the message
-      setMessages((prev) => ({
-        ...prev,
-        [selectedUserId]: [...(prev[selectedUserId] || []), newMessage],
-      }));
-
-      try {
-        // Send message via API
-        await apiSendMessage(
-          parseInt(currentUser.id, 10),
-          parseInt(selectedUserId, 10),
-          content
-        );
-
-        // Update message status to sent
-        setMessages((prev) => ({
-          ...prev,
-          [selectedUserId]: prev[selectedUserId]?.map((m) =>
-            m.id === tempId ? { ...m, status: 'sent' } : m
-          ) || [],
-        }));
-
-        // Update to delivered after a short delay
-        setTimeout(() => {
-          setMessages((prev) => ({
-            ...prev,
-            [selectedUserId]: prev[selectedUserId]?.map((m) =>
-              m.id === tempId ? { ...m, status: 'delivered' } : m
-            ) || [],
-          }));
-        }, 500);
-
-        setError(null);
-      } catch (err) {
-        console.error('Failed to send message:', err);
-        // Mark message as error
-        setMessages((prev) => ({
-          ...prev,
-          [selectedUserId]: prev[selectedUserId]?.map((m) =>
-            m.id === tempId ? { ...m, status: 'error' } : m
-          ) || [],
-        }));
-        setError('Failed to send message');
-      }
+      await sendMessage(content);
     },
-    [selectedUserId, currentUser]
-  );
-
-  const getLastMessage = useCallback(
-    (userId: string) => {
-      const userMessages = messages[userId];
-      if (!userMessages || userMessages.length === 0) return undefined;
-
-      const lastMsg = userMessages[userMessages.length - 1];
-      const timeStr = new Date(lastMsg.timestamp).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-
-      return {
-        text: lastMsg.content.length > 30 ? `${lastMsg.content.slice(0, 30)}...` : lastMsg.content,
-        timestamp: timeStr,
-      };
-    },
-    [messages]
+    [sendMessage]
   );
 
   // Handle adding a new user
   const handleAddUser = useCallback(async () => {
     const name = prompt('Enter the name for the new contact:');
     if (!name || !name.trim()) return;
-
-    try {
-      setIsLoading(true);
-      const newUser = await createUser(name.trim());
-      const uiUser = toUiUser(newUser);
-      setUsers((prev) => [...prev, uiUser]);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to add user:', err);
-      setError('Failed to add user');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    await addUser(name);
+  }, [addUser]);
 
   const commands: CommandItem[] = [
     {

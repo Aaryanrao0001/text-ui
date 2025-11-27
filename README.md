@@ -2,6 +2,41 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Environment Variables
+
+### VITE_API_URL
+
+The application connects to a FastAPI backend. Configure the API URL using the `VITE_API_URL` environment variable:
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env to set your API URL
+VITE_API_URL=http://127.0.0.1:5173/
+```
+
+If `VITE_API_URL` is not set, the application defaults to `http://127.0.0.1:5173/`.
+
+## Getting Started
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Configure environment (optional):
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Available Plugins
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
