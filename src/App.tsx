@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Conversation } from './components/Conversation';
 import { CommandPalette } from './components/CommandPalette';
+import { LoginModal } from './components/LoginModal';
 import { useApp } from './context/AppContext';
 import './App.css';
 
@@ -16,10 +17,14 @@ function App() {
     messages,
     isLoading,
     error,
+    showLoginModal,
     selectUser,
     sendMessage,
     addUser,
     getLastMessage,
+    getUnreadCount,
+    loginUser,
+    createAndLoginUser,
   } = useApp();
 
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -123,6 +128,7 @@ function App() {
           onSelectUser={handleSelectUser}
           onAddUser={handleAddUser}
           getLastMessage={getLastMessage}
+          getUnreadCount={getUnreadCount}
           isOpen={isSidebarOpen}
         />
 
@@ -140,6 +146,14 @@ function App() {
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
         commands={commands}
+      />
+
+      <LoginModal
+        isOpen={showLoginModal}
+        users={users}
+        onLogin={loginUser}
+        onCreate={createAndLoginUser}
+        isLoading={isLoading}
       />
     </div>
   );
