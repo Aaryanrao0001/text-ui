@@ -3,43 +3,88 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { User } from '../../types';
 import styles from './LoginModal.module.css';
 
+type ModalView = 'login' | 'create' | 'success';
+
 interface LoginModalProps {
   isOpen: boolean;
-  users: User[];
-  onLogin: (userId: string) => void;
-  onCreate: (name: string) => Promise<void>;
+  onLoginById: (userId: string) => Promise<boolean>;
+  onCreate: (name: string) => Promise<User | null>;
+  onClose: () => void;
   isLoading?: boolean;
 }
 
 export function LoginModal({
   isOpen,
-  users,
-  onLogin,
+  onLoginById,
   onCreate,
+  onClose,
   isLoading = false,
 }: LoginModalProps) {
-  const [isCreateMode, setIsCreateMode] = useState(false);
+  const [view, setView] = useState<ModalView>('login');
+  const [loginId, setLoginId] = useState('');
   const [newUserName, setNewUserName] = useState('');
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [createdUser, setCreatedUser] = useState<User | null>(null);
+  const [loginError, setLoginError] = useState('');
+  const [copied, setCopied] = useState(false);
 
-  const handleCreate = async () => {
-    if (!newUserName.trim() || isLoading) return;
-    await onCreate(newUserName.trim());
-    setNewUserName('');
-    setIsCreateMode(false);
-  };
-
-  const handleLogin = () => {
-    if (selectedUserId) {
-      onLogin(selectedUserId);
+  const handleLoginById = async () => {
+    if (!loginId.trim() || isLoading) return;
+    setLoginError('');
+    const success = await onLoginById(loginId.trim());
+    if (!success) {
+      setLoginError('Invalid ID. Please check and try again.');
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleCreate = async () => {
+    if (!newUserName.trim() || isLoading) return;
+    const user = await onCreate(newUserName.trim());
+    if (user) {
+      setCreatedUser(user);
+      setView('success');
+    }
+  };
+
+  const handleCopyId = async () => {
+    if (!createdUser) return;
+    try {
+      await navigator.clipboard.writeText(createdUser.id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy ID:', err);
+    }
+  };
+
+  const handleProceedToChat = () => {
+    setCreatedUser(null);
+    setNewUserName('');
+    setLoginId('');
+    setLoginError('');
+    setView('login');
+    setCopied(false);
+    onClose();
+  };
+
+  const handleKeyDownLogin = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleLoginById();
+    }
+  };
+
+  const handleKeyDownCreate = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleCreate();
     }
+  };
+
+  const resetToLogin = () => {
+    setView('login');
+    setNewUserName('');
+    setLoginId('');
+    setLoginError('');
   };
 
   return (
@@ -67,7 +112,36 @@ export function LoginModal({
             </div>
 
             <div className={styles.content}>
-              {isCreateMode ? (
+              {view === 'success' && createdUser ? (
+                <div className={styles.successBox}>
+                  <div className={styles.successIcon}>🎉</div>
+                  <h3 className={styles.successTitle}>Account Created!</h3>
+                  <p className={styles.welcomeText}>Welcome, {createdUser.username}!</p>
+                  
+                  <label className={styles.idLabel}>Your unique ID:</label>
+                  <div className={styles.idDisplay}>
+                    <span className={styles.idValue}>{createdUser.id}</span>
+                    <button
+                      className={`${styles.copyButton} ${copied ? styles.copied : ''}`}
+                      onClick={handleCopyId}
+                      title="Copy ID"
+                    >
+                      {copied ? '✓' : '📋'}
+                    </button>
+                  </div>
+                  
+                  <p className={styles.warningText}>
+                    ⚠️ Save this ID! You'll need it to login.
+                  </p>
+                  
+                  <button
+                    className={styles.primaryButton}
+                    onClick={handleProceedToChat}
+                  >
+                    Proceed to Chat
+                  </button>
+                </div>
+              ) : view === 'create' ? (
                 <div className={styles.createForm}>
                   <label className={styles.label}>Enter your name</label>
                   <input
@@ -76,14 +150,14 @@ export function LoginModal({
                     placeholder="Your name..."
                     value={newUserName}
                     onChange={(e) => setNewUserName(e.target.value)}
-                    onKeyDown={handleKeyDown}
+                    onKeyDown={handleKeyDownCreate}
                     autoFocus
                     disabled={isLoading}
                   />
                   <div className={styles.buttonGroup}>
                     <button
                       className={styles.secondaryButton}
-                      onClick={() => setIsCreateMode(false)}
+                      onClick={resetToLogin}
                       disabled={isLoading}
                     >
                       Back
@@ -99,40 +173,36 @@ export function LoginModal({
                 </div>
               ) : (
                 <>
-                  {users.length > 0 ? (
-                    <>
-                      <label className={styles.label}>Select your account</label>
-                      <div className={styles.userList}>
-                        {users.map((user) => (
-                          <button
-                            key={user.id}
-                            className={`${styles.userItem} ${selectedUserId === user.id ? styles.selected : ''}`}
-                            onClick={() => setSelectedUserId(user.id)}
-                          >
-                            <div className={styles.avatar}>
-                              {user.username.slice(0, 2).toUpperCase()}
-                            </div>
-                            <span className={styles.userName}>{user.username}</span>
-                          </button>
-                        ))}
-                      </div>
-                      <button
-                        className={styles.primaryButton}
-                        onClick={handleLogin}
-                        disabled={!selectedUserId || isLoading}
-                      >
-                        Continue
-                      </button>
-                    </>
-                  ) : (
-                    <p className={styles.emptyText}>No existing accounts found.</p>
+                  <label className={styles.label}>Enter your ID to login</label>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="Your ID..."
+                    value={loginId}
+                    onChange={(e) => {
+                      setLoginId(e.target.value);
+                      setLoginError('');
+                    }}
+                    onKeyDown={handleKeyDownLogin}
+                    autoFocus
+                    disabled={isLoading}
+                  />
+                  {loginError && (
+                    <p className={styles.errorText}>{loginError}</p>
                   )}
+                  <button
+                    className={styles.primaryButton}
+                    onClick={handleLoginById}
+                    disabled={!loginId.trim() || isLoading}
+                  >
+                    {isLoading ? 'Logging in...' : 'Login'}
+                  </button>
                   <div className={styles.divider}>
                     <span>or</span>
                   </div>
                   <button
                     className={styles.secondaryButton}
-                    onClick={() => setIsCreateMode(true)}
+                    onClick={() => setView('create')}
                     disabled={isLoading}
                   >
                     Create New Account
