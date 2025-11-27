@@ -23,6 +23,11 @@ const GREETING_MESSAGES = [
   "Hello and welcome! If you have any cool suggestions, I'm all ears!",
 ];
 
+// Helper to convert string ID to number for API calls
+function toApiId(id: string): number {
+  return parseInt(id, 10);
+}
+
 // Convert API user to UI User type
 function toUiUser(apiUser: ApiUser): User {
   return {
@@ -146,7 +151,7 @@ export function AppProvider({ children }: AppProviderProps) {
   const refreshContactSummaries = useCallback(async () => {
     if (!currentUser) return;
     try {
-      const summaries = await apiGetContactSummaries(parseInt(currentUser.id, 10));
+      const summaries = await apiGetContactSummaries(toApiId(currentUser.id));
       const uiSummaries: UiContactSummary[] = summaries.map((s: ContactSummary) => ({
         contactId: String(s.contact_id),
         contactName: s.contact_name,
@@ -167,8 +172,8 @@ export function AppProvider({ children }: AppProviderProps) {
     try {
       setIsLoading(true);
       const apiMessages = await getConversation(
-        parseInt(currentUser.id, 10),
-        parseInt(selectedUserId, 10)
+        toApiId(currentUser.id),
+        toApiId(selectedUserId)
       );
       const uiMessages = apiMessages.map((m) => toUiMessage(m));
       setMessages((prev) => ({
@@ -235,8 +240,8 @@ export function AppProvider({ children }: AppProviderProps) {
       try {
         setIsLoading(true);
         const apiMessages = await getConversation(
-          parseInt(currentUser.id, 10),
-          parseInt(selectedUserId, 10)
+          toApiId(currentUser.id),
+          toApiId(selectedUserId)
         );
         const uiMessages = apiMessages.map((m) => toUiMessage(m));
         setMessages((prev) => ({
@@ -247,8 +252,8 @@ export function AppProvider({ children }: AppProviderProps) {
         // Mark conversation as read
         try {
           await apiMarkConversationRead(
-            parseInt(currentUser.id, 10),
-            parseInt(selectedUserId, 10)
+            toApiId(currentUser.id),
+            toApiId(selectedUserId)
           );
           // Refresh contact summaries to update unread count
           refreshContactSummaries();
@@ -338,8 +343,8 @@ export function AppProvider({ children }: AppProviderProps) {
       try {
         // Send message via API
         await apiSendMessage(
-          parseInt(currentUser.id, 10),
-          parseInt(selectedUserId, 10),
+          toApiId(currentUser.id),
+          toApiId(selectedUserId),
           content
         );
 
@@ -378,7 +383,7 @@ export function AppProvider({ children }: AppProviderProps) {
           ) || [],
         }));
         setError('Failed to send message');
-        throw err; // Re-throw to let Composer handle error state
+        throw err; // Re-throw to allow caller to handle error state
       }
     },
     [selectedUserId, currentUser, refreshConversation, refreshContactSummaries]
