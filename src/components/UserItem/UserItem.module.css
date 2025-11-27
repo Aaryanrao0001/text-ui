@@ -142,6 +142,14 @@
   transition: color var(--transition-fast);
 }
 
+.userId {
+  margin-left: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
 .userItem:hover .username,
 .userItem.selected .username {
   color: var(--neon-cyan);

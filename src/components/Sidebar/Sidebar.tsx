@@ -12,6 +12,7 @@ interface SidebarProps {
   getLastMessage?: (userId: string) => { text: string; timestamp: string } | undefined;
   getUnreadCount?: (userId: string) => number;
   isOpen?: boolean;
+  isLoading?: boolean;
 }
 
 export function Sidebar({
@@ -22,6 +23,7 @@ export function Sidebar({
   getLastMessage,
   getUnreadCount,
   isOpen = true,
+  isLoading = false,
 }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -55,7 +57,23 @@ export function Sidebar({
 
       <div className={styles.userList}>
         <AnimatePresence mode="popLayout">
-          {filteredUsers.length > 0 ? (
+          {isLoading ? (
+            <motion.div
+              className={styles.loadingState}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {[1, 2, 3].map((i) => (
+                <div key={i} className={styles.shimmerItem}>
+                  <div className={styles.shimmerAvatar} />
+                  <div className={styles.shimmerText}>
+                    <div className={styles.shimmerLine} />
+                    <div className={styles.shimmerLineShort} />
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          ) : filteredUsers.length > 0 ? (
             filteredUsers.map((user, index) => {
               const lastMsg = getLastMessage?.(user.id);
               const unread = getUnreadCount?.(user.id) ?? 0;
