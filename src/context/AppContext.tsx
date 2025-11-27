@@ -4,6 +4,7 @@ import type { User, Message } from '../types';
 import {
   listUsers,
   createUser as apiCreateUser,
+  getUser as apiGetUser,
   getConversation,
   sendMessage as apiSendMessage,
   getContactSummaries as apiGetContactSummaries,
@@ -87,7 +88,8 @@ interface AppContextValue {
   refreshConversation: () => Promise<void>;
   refreshContactSummaries: () => Promise<void>;
   loginUser: (userId: string) => void;
-  createAndLoginUser: (name: string) => Promise<void>;
+  loginById: (userId: string) => Promise<boolean>;
+  createAndLoginUser: (name: string) => Promise<User | null>;
   setShowLoginModal: (show: boolean) => void;
 }
 
@@ -284,10 +286,44 @@ export function AppProvider({ children }: AppProviderProps) {
     [users]
   );
 
+  // Login by ID - validates user ID against backend API
+  const loginById = useCallback(
+    async (userId: string): Promise<boolean> => {
+      const numericId = parseInt(userId, 10);
+      if (isNaN(numericId) || numericId <= 0) {
+        return false;
+      }
+      try {
+        setIsLoading(true);
+        const apiUser = await apiGetUser(numericId);
+        const uiUser = toUiUser(apiUser);
+        // Update users list if not already present
+        setUsers((prev) => {
+          const exists = prev.find((u) => u.id === uiUser.id);
+          if (!exists) {
+            return [...prev, uiUser];
+          }
+          return prev;
+        });
+        setCurrentUser(uiUser);
+        localStorage.setItem(CURRENT_USER_KEY, uiUser.id);
+        setShowLoginModal(false);
+        setError(null);
+        return true;
+      } catch (err) {
+        console.error('Failed to login by ID:', err);
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
   // Create new user and login
   const createAndLoginUser = useCallback(
-    async (name: string) => {
-      if (!name.trim()) return;
+    async (name: string): Promise<User | null> => {
+      if (!name.trim()) return null;
       try {
         setIsLoading(true);
         const newUser = await apiCreateUser(name.trim());
@@ -295,7 +331,6 @@ export function AppProvider({ children }: AppProviderProps) {
         setUsers((prev) => [...prev, uiUser]);
         setCurrentUser(uiUser);
         localStorage.setItem(CURRENT_USER_KEY, uiUser.id);
-        setShowLoginModal(false);
 
         // Seed default contact for new user
         await seedDefaultContact(newUser.id);
@@ -305,9 +340,11 @@ export function AppProvider({ children }: AppProviderProps) {
         await refreshContactSummaries();
 
         setError(null);
+        return uiUser;
       } catch (err) {
         console.error('Failed to create user:', err);
         setError('Failed to create user');
+        return null;
       } finally {
         setIsLoading(false);
       }
@@ -470,6 +507,7 @@ export function AppProvider({ children }: AppProviderProps) {
     refreshConversation,
     refreshContactSummaries,
     loginUser,
+    loginById,
     createAndLoginUser,
     setShowLoginModal,
   };

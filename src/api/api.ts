@@ -49,6 +49,17 @@ export async function listUsers(): Promise<ApiUser[]> {
   return res.json();
 }
 
+export async function getUser(userId: number): Promise<ApiUser> {
+  const res = await fetch(`${API_BASE}/users/${userId}`);
+  if (!res.ok) {
+    if (res.status === 404) {
+      throw new Error('User not found');
+    }
+    throw new Error(`Failed to get user: ${res.status} ${res.statusText}`);
+  }
+  return res.json();
+}
+
 export async function sendMessage(sender_id: number, recipient_id: number, message: string): Promise<ApiMessage> {
   const res = await fetch(`${API_BASE}/messages/`, {
     method: 'POST',
