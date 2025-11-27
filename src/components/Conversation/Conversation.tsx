@@ -30,12 +30,16 @@ export function Conversation({
   useEffect(() => {
     // Show decrypting effect when user changes
     if (user && user.id !== prevUserIdRef.current && messages.length > 0) {
-      const timer = setTimeout(() => {
-        setIsDecrypting(true);
-        setTimeout(() => setIsDecrypting(false), 300);
-      }, 0);
       prevUserIdRef.current = user.id;
-      return () => clearTimeout(timer);
+      // Use requestAnimationFrame to defer setState and avoid synchronous update warning
+      const rafId = requestAnimationFrame(() => {
+        setIsDecrypting(true);
+      });
+      const timer = setTimeout(() => setIsDecrypting(false), 300);
+      return () => {
+        cancelAnimationFrame(rafId);
+        clearTimeout(timer);
+      };
     }
     if (!user) {
       prevUserIdRef.current = undefined;

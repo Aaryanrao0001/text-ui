@@ -76,11 +76,13 @@
   opacity: 0;
   transition: opacity var(--transition-normal);
   animation: rotate 4s linear infinite;
+  animation-play-state: paused;
 }
 
 .userItem:hover .avatar::before,
 .userItem.selected .avatar::before {
   opacity: 0.3;
+  animation-play-state: running;
 }
 
 @keyframes rotate {
