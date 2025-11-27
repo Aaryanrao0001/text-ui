@@ -1,0 +1,235 @@
+/* LoginModal styles - minimal, matching existing Cyberpunk × Arcane theme */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 13, 16, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  backdrop-filter: blur(8px);
+}
+
+.modal {
+  background: var(--bg-elevated);
+  border: var(--border-glow);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  width: 90%;
+  max-width: 400px;
+  box-shadow: var(--glow-cyan);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-3);
+}
+
+.lockIcon {
+  width: 48px;
+  height: 48px;
+  fill: var(--neon-cyan);
+  margin-bottom: var(--space-2);
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-pure);
+  margin: 0 0 var(--space-1) 0;
+  letter-spacing: 0.05em;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-2);
+  background: var(--bg-surface);
+  border: 1px solid rgba(0, 246, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--text-pure);
+  font-size: 1rem;
+  transition: border-color var(--transition-fast);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 246, 255, 0.2);
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.userList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: var(--space-2);
+}
+
+.userItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--bg-surface);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.userItem:hover {
+  border-color: rgba(0, 246, 255, 0.3);
+  background: rgba(0, 246, 255, 0.05);
+}
+
+.userItem.selected {
+  border-color: var(--neon-cyan);
+  background: rgba(0, 246, 255, 0.1);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--neon-cyan-dim), var(--neon-violet));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-pure);
+}
+
+.userName {
+  font-size: 0.9375rem;
+  color: var(--text-pure);
+}
+
+.primaryButton {
+  width: 100%;
+  padding: var(--space-2);
+  background: linear-gradient(135deg, var(--neon-cyan), var(--soft-teal));
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--bg-void);
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.primaryButton:hover:not(:disabled) {
+  box-shadow: var(--glow-cyan-intense);
+  transform: translateY(-1px);
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  width: 100%;
+  padding: var(--space-2);
+  background: transparent;
+  border: 1px solid rgba(0, 246, 255, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--neon-cyan);
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: rgba(0, 246, 255, 0.1);
+  border-color: var(--neon-cyan);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.divider span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.emptyText {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: var(--space-2) 0;
+}
+
+.createForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.buttonGroup .secondaryButton,
+.buttonGroup .primaryButton {
+  flex: 1;
+}

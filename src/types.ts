@@ -17,6 +17,8 @@ export interface Message {
   timestamp: Date;
   status: 'sending' | 'sent' | 'delivered' | 'read' | 'error';
   encrypted?: boolean;
+  read?: boolean;
+  decrypted?: string;
 }
 
 export interface Conversation {

@@ -14,6 +14,15 @@ export interface ApiMessage {
   nonce: string;
   timestamp: string;
   decrypted: string;
+  read?: boolean;
+}
+
+export interface ContactSummary {
+  contact_id: number;
+  contact_name: string;
+  last_message: string;
+  last_message_time: string;
+  unread_count: number;
 }
 
 export interface HealthStatus {
@@ -66,4 +75,21 @@ export async function getHealth(): Promise<HealthStatus> {
     throw new Error(`Failed to get health status: ${res.status} ${res.statusText}`);
   }
   return res.json();
+}
+
+export async function getContactSummaries(userId: number): Promise<ContactSummary[]> {
+  const res = await fetch(`${API_BASE}/conversations/user/${userId}`);
+  if (!res.ok) {
+    throw new Error(`Failed to get contact summaries: ${res.status} ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function markConversationRead(userId: number, contactId: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/conversations/${userId}/${contactId}/read`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to mark conversation read: ${res.status} ${res.statusText}`);
+  }
 }
