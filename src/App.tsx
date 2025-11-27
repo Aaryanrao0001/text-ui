@@ -20,7 +20,7 @@ function toUiUser(apiUser: ApiUser): User {
 function toUiMessage(apiMessage: ApiMessage): Message {
   return {
     id: String(apiMessage.id),
-    content: apiMessage.decrypted,
+    content: apiMessage.decrypted ?? '',
     senderId: String(apiMessage.sender_id),
     receiverId: String(apiMessage.recipient_id),
     timestamp: new Date(apiMessage.timestamp),
@@ -37,6 +37,7 @@ function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const selectedUser = users.find((u) => u.id === selectedUserId);
@@ -46,7 +47,7 @@ function App() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        setIsLoading(true);
+        setIsLoadingUsers(true);
         const apiUsers = await listUsers();
         const uiUsers = apiUsers.map(toUiUser);
         setUsers(uiUsers);
@@ -59,7 +60,7 @@ function App() {
         console.error('Failed to fetch users:', err);
         setError('Failed to load users');
       } finally {
-        setIsLoading(false);
+        setIsLoadingUsers(false);
       }
     };
     fetchUsers();
@@ -277,6 +278,7 @@ function App() {
           onAddUser={handleAddUser}
           getLastMessage={getLastMessage}
           isOpen={isSidebarOpen}
+          isLoading={isLoadingUsers}
         />
 
         <Conversation

@@ -43,7 +43,10 @@ export function UserItem({
       </div>
 
       <div className={styles.userInfo}>
-        <span className={styles.username}>{user.username}</span>
+        <span className={styles.username}>
+          {user.username}
+          <span className={styles.userId}>#{user.id}</span>
+        </span>
         {lastMessage && <span className={styles.lastMessage}>{lastMessage}</span>}
       </div>
 
