@@ -1,0 +1,163 @@
+.header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-3);
+  background: var(--bg-surface);
+  border-bottom: 1px solid rgba(0, 246, 255, 0.15);
+  position: relative;
+  z-index: var(--z-dropdown);
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--neon-cyan) 20%, 
+    var(--neon-cyan) 80%, 
+    transparent 100%
+  );
+  opacity: 0.5;
+  box-shadow: var(--glow-cyan);
+}
+
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.logoWrapper {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoGlow {
+  position: absolute;
+  inset: -8px;
+  background: radial-gradient(circle, var(--neon-cyan-glow) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: neonPulse 3s ease-in-out infinite;
+  filter: blur(8px);
+}
+
+.logoIcon {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  fill: var(--neon-cyan);
+  filter: drop-shadow(0 0 8px var(--neon-cyan));
+  animation: hologramFlicker 4s ease-in-out infinite;
+}
+
+.appName {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--text-pure);
+  text-transform: uppercase;
+  text-shadow: 0 0 20px var(--neon-cyan-glow);
+}
+
+.appName span {
+  color: var(--neon-cyan);
+}
+
+.statusSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.encryptionBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 6px 12px;
+  background: rgba(0, 246, 255, 0.08);
+  border: 1px solid rgba(0, 246, 255, 0.2);
+  border-radius: var(--radius-full);
+  font-family: var(--font-heading);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+}
+
+.lockIcon {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+.connectionStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--soft-teal);
+  box-shadow: 0 0 8px var(--soft-teal);
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+.statusDot.offline {
+  background: var(--neon-magenta);
+  box-shadow: 0 0 8px var(--neon-magenta);
+}
+
+/* Corner accent vents */
+.header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 24px 24px 0;
+  border-color: transparent var(--bg-void) transparent transparent;
+}
+
+.cornerVent {
+  position: absolute;
+  top: 0;
+  right: 24px;
+  width: 24px;
+  height: 2px;
+  background: var(--neon-cyan);
+  opacity: 0.6;
+  box-shadow: 0 0 8px var(--neon-cyan);
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 var(--space-2);
+  }
+  
+  .appName {
+    font-size: 0.875rem;
+  }
+  
+  .encryptionBadge {
+    display: none;
+  }
+}

@@ -1,0 +1,183 @@
+.messageBubble {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+  animation: fadeInUp 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.messageBubble.sent {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.messageBubble.received {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.bubble {
+  position: relative;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Sent message styling */
+.sent .bubble {
+  background: var(--gradient-sent);
+  border: 1px solid rgba(0, 234, 255, 0.4);
+  border-radius: 16px 16px 4px 16px;
+  box-shadow: 
+    0 0 14px rgba(0, 234, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.sent .bubble::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: -6px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 8px 0 0 8px;
+  border-color: transparent transparent transparent rgba(0, 234, 255, 0.4);
+  filter: drop-shadow(0 0 4px rgba(0, 234, 255, 0.3));
+}
+
+/* Received message styling */
+.received .bubble {
+  background: var(--gradient-received);
+  border: 1px solid rgba(143, 98, 255, 0.35);
+  border-radius: 16px 16px 16px 4px;
+  box-shadow: 
+    0 0 14px rgba(143, 98, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.received .bubble::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -6px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 8px 8px;
+  border-color: transparent transparent rgba(143, 98, 255, 0.35) transparent;
+  filter: drop-shadow(0 0 4px rgba(143, 98, 255, 0.2));
+}
+
+.content {
+  color: var(--text-pure);
+  position: relative;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 0 4px;
+}
+
+.timestamp {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.statusIcon {
+  width: 14px;
+  height: 14px;
+  fill: var(--text-muted);
+}
+
+.statusIcon.delivered {
+  fill: var(--neon-cyan);
+}
+
+.statusIcon.read {
+  fill: var(--soft-teal);
+}
+
+/* Sending state */
+.sending .bubble {
+  opacity: 0.7;
+}
+
+/* Error state */
+.error .bubble {
+  border-color: var(--neon-magenta);
+  box-shadow: 0 0 20px var(--neon-magenta-glow);
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Encryption indicator */
+.encryptedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.625rem;
+  color: var(--neon-cyan-dim);
+  margin-left: 8px;
+}
+
+.lockIconSmall {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+}
+
+/* Decrypting shimmer effect */
+.decrypting {
+  position: relative;
+  overflow: hidden;
+}
+
+.decrypting::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 246, 255, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Chromatic aberration effect on text */
+.bubble:hover .content {
+  text-shadow: 
+    -0.5px 0 rgba(255, 0, 119, 0.3),
+    0.5px 0 rgba(0, 246, 255, 0.3);
+}
