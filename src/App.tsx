@@ -4,100 +4,96 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Conversation } from './components/Conversation';
 import { CommandPalette } from './components/CommandPalette';
+import { listUsers, createUser, getConversation, sendMessage as apiSendMessage, type ApiUser, type ApiMessage } from './api/api';
 import './App.css';
 
-// Demo data
-const CURRENT_USER_ID = 'current-user';
+// Convert API user to UI User type
+function toUiUser(apiUser: ApiUser): User {
+  return {
+    id: String(apiUser.id),
+    username: apiUser.name,
+    status: 'online', // Default status since API doesn't provide it
+  };
+}
 
-const DEMO_USERS: User[] = [
-  { id: '1', username: 'Caitlyn', status: 'online' },
-  { id: '2', username: 'Vi', status: 'online' },
-  { id: '3', username: 'Jinx', status: 'away' },
-  { id: '4', username: 'Jayce', status: 'offline' },
-  { id: '5', username: 'Viktor', status: 'online' },
-  { id: '6', username: 'Silco', status: 'offline' },
-  { id: '7', username: 'Ekko', status: 'away' },
-];
-
-const DEMO_MESSAGES: Record<string, Message[]> = {
-  '1': [
-    {
-      id: 'm1',
-      content: 'The Hextech prototype is ready for testing.',
-      senderId: '1',
-      receiverId: CURRENT_USER_ID,
-      timestamp: new Date(Date.now() - 3600000),
-      status: 'read',
-      encrypted: true,
-    },
-    {
-      id: 'm2',
-      content: 'Perfect. I\'ll head to the lab now. Make sure the containment protocols are in place.',
-      senderId: CURRENT_USER_ID,
-      receiverId: '1',
-      timestamp: new Date(Date.now() - 3500000),
-      status: 'read',
-      encrypted: true,
-    },
-    {
-      id: 'm3',
-      content: 'Security is tight. Vi is handling the perimeter.',
-      senderId: '1',
-      receiverId: CURRENT_USER_ID,
-      timestamp: new Date(Date.now() - 3400000),
-      status: 'read',
-      encrypted: true,
-    },
-    {
-      id: 'm4',
-      content: 'Excellent. This breakthrough will change everything for Piltover.',
-      senderId: CURRENT_USER_ID,
-      receiverId: '1',
-      timestamp: new Date(Date.now() - 3300000),
-      status: 'delivered',
-      encrypted: true,
-    },
-  ],
-  '2': [
-    {
-      id: 'm5',
-      content: 'You ready to hit the undercity?',
-      senderId: '2',
-      receiverId: CURRENT_USER_ID,
-      timestamp: new Date(Date.now() - 7200000),
-      status: 'read',
-      encrypted: true,
-    },
-    {
-      id: 'm6',
-      content: 'Always. Meet you at the usual spot.',
-      senderId: CURRENT_USER_ID,
-      receiverId: '2',
-      timestamp: new Date(Date.now() - 7100000),
-      status: 'read',
-      encrypted: true,
-    },
-  ],
-  '3': [
-    {
-      id: 'm7',
-      content: 'Boom! 💥 Miss me?',
-      senderId: '3',
-      receiverId: CURRENT_USER_ID,
-      timestamp: new Date(Date.now() - 86400000),
-      status: 'read',
-      encrypted: true,
-    },
-  ],
-};
+// Convert API message to UI Message type
+function toUiMessage(apiMessage: ApiMessage): Message {
+  return {
+    id: String(apiMessage.id),
+    content: apiMessage.decrypted,
+    senderId: String(apiMessage.sender_id),
+    receiverId: String(apiMessage.recipient_id),
+    timestamp: new Date(apiMessage.timestamp),
+    status: 'delivered',
+    encrypted: true,
+  };
+}
 
 function App() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | undefined>();
-  const [messages, setMessages] = useState<Record<string, Message[]>>(DEMO_MESSAGES);
+  const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const selectedUser = DEMO_USERS.find((u) => u.id === selectedUserId);
+  const selectedUser = users.find((u) => u.id === selectedUserId);
+  const currentUserId = currentUser?.id || '';
+
+  // Fetch users from API on mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setIsLoading(true);
+        const apiUsers = await listUsers();
+        const uiUsers = apiUsers.map(toUiUser);
+        setUsers(uiUsers);
+        // Set the first user as the current (logged-in) user
+        if (uiUsers.length > 0 && !currentUser) {
+          setCurrentUser(uiUsers[0]);
+        }
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch users:', err);
+        setError('Failed to load users');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUsers();
+  }, [currentUser]);
+
+  // Fetch conversation when a user is selected
+  useEffect(() => {
+    if (!selectedUserId || !currentUser) return;
+
+    const fetchConversation = async () => {
+      try {
+        setIsLoading(true);
+        const apiMessages = await getConversation(
+          parseInt(currentUser.id, 10),
+          parseInt(selectedUserId, 10)
+        );
+        const uiMessages = apiMessages.map((m) => toUiMessage(m));
+        setMessages((prev) => ({
+          ...prev,
+          [selectedUserId]: uiMessages,
+        }));
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch conversation:', err);
+        // Don't set error state for conversation fetch - just show empty conversation
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchConversation();
+  }, [selectedUserId, currentUser]);
+
+  // Filter out the current user from the contacts list
+  const contactUsers = users.filter((u) => u.id !== currentUser?.id);
 
   // Keyboard shortcut for command palette
   useEffect(() => {
@@ -121,45 +117,66 @@ function App() {
   }, []);
 
   const handleSendMessage = useCallback(
-    (content: string) => {
-      if (!selectedUserId) return;
+    async (content: string) => {
+      if (!selectedUserId || !currentUser) return;
 
+      const tempId = `m${Date.now()}`;
       const newMessage: Message = {
-        id: `m${Date.now()}`,
+        id: tempId,
         content,
-        senderId: CURRENT_USER_ID,
+        senderId: currentUser.id,
         receiverId: selectedUserId,
         timestamp: new Date(),
         status: 'sending',
         encrypted: true,
       };
 
+      // Optimistically add the message
       setMessages((prev) => ({
         ...prev,
         [selectedUserId]: [...(prev[selectedUserId] || []), newMessage],
       }));
 
-      // Simulate message being sent
-      setTimeout(() => {
-        setMessages((prev) => ({
-          ...prev,
-          [selectedUserId]: prev[selectedUserId]?.map((m) =>
-            m.id === newMessage.id ? { ...m, status: 'sent' } : m
-          ) || [],
-        }));
-      }, 500);
+      try {
+        // Send message via API
+        await apiSendMessage(
+          parseInt(currentUser.id, 10),
+          parseInt(selectedUserId, 10),
+          content
+        );
 
-      // Simulate message being delivered
-      setTimeout(() => {
+        // Update message status to sent
         setMessages((prev) => ({
           ...prev,
           [selectedUserId]: prev[selectedUserId]?.map((m) =>
-            m.id === newMessage.id ? { ...m, status: 'delivered' } : m
+            m.id === tempId ? { ...m, status: 'sent' } : m
           ) || [],
         }));
-      }, 1000);
+
+        // Update to delivered after a short delay
+        setTimeout(() => {
+          setMessages((prev) => ({
+            ...prev,
+            [selectedUserId]: prev[selectedUserId]?.map((m) =>
+              m.id === tempId ? { ...m, status: 'delivered' } : m
+            ) || [],
+          }));
+        }, 500);
+
+        setError(null);
+      } catch (err) {
+        console.error('Failed to send message:', err);
+        // Mark message as error
+        setMessages((prev) => ({
+          ...prev,
+          [selectedUserId]: prev[selectedUserId]?.map((m) =>
+            m.id === tempId ? { ...m, status: 'error' } : m
+          ) || [],
+        }));
+        setError('Failed to send message');
+      }
     },
-    [selectedUserId]
+    [selectedUserId, currentUser]
   );
 
   const getLastMessage = useCallback(
@@ -181,13 +198,35 @@ function App() {
     [messages]
   );
 
+  // Handle adding a new user
+  const handleAddUser = useCallback(async () => {
+    const name = prompt('Enter the name for the new contact:');
+    if (!name || !name.trim()) return;
+
+    try {
+      setIsLoading(true);
+      const newUser = await createUser(name.trim());
+      const uiUser = toUiUser(newUser);
+      setUsers((prev) => [...prev, uiUser]);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to add user:', err);
+      setError('Failed to add user');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const commands: CommandItem[] = [
     {
       id: 'add-user',
       label: 'Add new contact',
       icon: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',
       shortcut: '⌘+N',
-      action: () => alert('Add contact feature coming soon!'),
+      action: () => {
+        setIsCommandPaletteOpen(false);
+        handleAddUser();
+      },
     },
     {
       id: 'jump-chat',
@@ -227,13 +266,14 @@ function App() {
         ))}
       </div>
 
-      <Header isConnected={true} />
+      <Header isConnected={users.length > 0 && !error} />
 
       <main className="mainContent">
         <Sidebar
-          users={DEMO_USERS}
+          users={contactUsers}
           selectedUserId={selectedUserId}
           onSelectUser={handleSelectUser}
+          onAddUser={handleAddUser}
           getLastMessage={getLastMessage}
           isOpen={isSidebarOpen}
         />
@@ -241,9 +281,10 @@ function App() {
         <Conversation
           user={selectedUser}
           messages={selectedUserId ? messages[selectedUserId] || [] : []}
-          currentUserId={CURRENT_USER_ID}
+          currentUserId={currentUserId}
           onSendMessage={handleSendMessage}
           onBack={() => setIsSidebarOpen(true)}
+          isLoading={isLoading}
         />
       </main>
 
