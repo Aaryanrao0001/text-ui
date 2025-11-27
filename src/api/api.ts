@@ -22,7 +22,7 @@ export async function createUser(name: string): Promise<ApiUser> {
     body: JSON.stringify({ name })
   });
   if (!res.ok) {
-    throw new Error(`Failed to create user: ${res.status}`);
+    throw new Error(`Failed to create user: ${res.status} ${res.statusText}`);
   }
   return res.json();
 }
@@ -30,7 +30,7 @@ export async function createUser(name: string): Promise<ApiUser> {
 export async function listUsers(): Promise<ApiUser[]> {
   const res = await fetch(`${API_BASE}/users/`);
   if (!res.ok) {
-    throw new Error(`Failed to list users: ${res.status}`);
+    throw new Error(`Failed to list users: ${res.status} ${res.statusText}`);
   }
   return res.json();
 }
@@ -42,7 +42,7 @@ export async function sendMessage(sender_id: number, recipient_id: number, messa
     body: JSON.stringify({ sender_id, recipient_id, message })
   });
   if (!res.ok) {
-    throw new Error(`Failed to send message: ${res.status}`);
+    throw new Error(`Failed to send message: ${res.status} ${res.statusText}`);
   }
   return res.json();
 }
@@ -50,7 +50,7 @@ export async function sendMessage(sender_id: number, recipient_id: number, messa
 export async function getConversation(userA: number, userB: number): Promise<ApiMessage[]> {
   const res = await fetch(`${API_BASE}/conversations/${userA}/${userB}`);
   if (!res.ok) {
-    throw new Error(`Failed to get conversation: ${res.status}`);
+    throw new Error(`Failed to get conversation: ${res.status} ${res.statusText}`);
   }
   return res.json();
 }

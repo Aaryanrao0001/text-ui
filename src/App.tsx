@@ -63,7 +63,8 @@ function App() {
       }
     };
     fetchUsers();
-  }, [currentUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Fetch conversation when a user is selected
   useEffect(() => {
