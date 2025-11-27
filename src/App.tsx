@@ -23,9 +23,8 @@ function App() {
     addUser,
     getLastMessage,
     getUnreadCount,
-    loginById,
+    loginUser,
     createAndLoginUser,
-    setShowLoginModal,
   } = useApp();
 
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -151,9 +150,9 @@ function App() {
 
       <LoginModal
         isOpen={showLoginModal}
-        onLoginById={loginById}
+        users={users}
+        onLogin={loginUser}
         onCreate={createAndLoginUser}
-        onClose={() => setShowLoginModal(false)}
         isLoading={isLoading}
       />
     </div>
