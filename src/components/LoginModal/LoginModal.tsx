@@ -138,7 +138,7 @@ export function LoginModal({
                 <div className={styles.successBox}>
                   <div className={styles.successIcon}>🎉</div>
                   <h3 className={styles.successTitle}>Account Created!</h3>
-                  <p className={styles.welcomeText}>Welcome, {createdUser.name ?? createdUser.username ?? 'User'}!</p>
+                  <p className={styles.welcomeText}>Welcome, {createdUser.username ?? 'User'}!</p>
 
                   <label className={styles.idLabel}>Your unique ID:</label>
                   <div className={styles.idDisplay}>

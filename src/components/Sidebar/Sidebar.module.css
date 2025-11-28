@@ -82,6 +82,150 @@
   fill: var(--neon-cyan);
 }
 
+/* Search by ID button */
+.searchByIdButton {
+  width: 100%;
+  margin-top: var(--space-1);
+  padding: 8px 12px;
+  background: rgba(0, 246, 255, 0.1);
+  border: 1px solid rgba(0, 246, 255, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--neon-cyan);
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.searchByIdButton:hover:not(:disabled) {
+  background: rgba(0, 246, 255, 0.15);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 15px rgba(0, 246, 255, 0.2);
+}
+
+.searchByIdButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Searching indicator */
+.searchingIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Search error */
+.searchError {
+  margin-top: var(--space-1);
+  padding: 8px 12px;
+  background: rgba(255, 59, 48, 0.1);
+  border: 1px solid rgba(255, 59, 48, 0.3);
+  border-radius: var(--radius-md);
+  color: #ff6b6b;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* Search result */
+.searchResult {
+  margin-top: var(--space-1);
+  padding: 10px 12px;
+  background: rgba(0, 246, 255, 0.05);
+  border: 1px solid rgba(0, 246, 255, 0.2);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.searchResultUser {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.searchResultAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--bg-primary);
+  flex-shrink: 0;
+}
+
+.searchResultInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.searchResultName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-pure);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.searchResultId {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Add contact button */
+.addContactButton {
+  padding: 6px 12px;
+  background: rgba(0, 246, 255, 0.15);
+  border: 1px solid var(--neon-cyan);
+  border-radius: var(--radius-sm);
+  color: var(--neon-cyan);
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+}
+
+.addContactButton:hover {
+  background: rgba(0, 246, 255, 0.25);
+  box-shadow: 0 0 15px rgba(0, 246, 255, 0.3);
+}
+
+/* Already contact button */
+.alreadyContactButton {
+  padding: 6px 12px;
+  background: rgba(138, 43, 226, 0.15);
+  border: 1px solid var(--neon-purple);
+  border-radius: var(--radius-sm);
+  color: var(--neon-purple);
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+}
+
+.alreadyContactButton:hover {
+  background: rgba(138, 43, 226, 0.25);
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
+}
+
 .sectionLabel {
   padding: var(--space-2) var(--space-2) var(--space-1);
   font-family: var(--font-heading);

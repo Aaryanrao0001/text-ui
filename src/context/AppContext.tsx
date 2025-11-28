@@ -93,6 +93,8 @@ interface AppContextValue {
   loginById: (userId: string) => Promise<boolean>;
   createAndLoginUser: (name: string) => Promise<User | null>;
   setShowLoginModal: (show: boolean) => void;
+  searchUserById: (userId: string) => Promise<User | null>;
+  addContact: (user: User) => void;
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
@@ -492,6 +494,30 @@ export function AppProvider({ children }: AppProviderProps) {
     [contactSummaries]
   );
 
+  // Search for a user by their ID
+  const searchUserById = useCallback(async (userId: string): Promise<User | null> => {
+    const numericId = parseInt(userId, 10);
+    if (isNaN(numericId) || numericId <= 0) {
+      return null;
+    }
+    try {
+      const apiUser = await apiGetUser(numericId);
+      return toUiUser(apiUser);
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Add a user to the contacts list
+  const addContact = useCallback((user: User) => {
+    setUsers((prev) => {
+      if (prev.find((u) => u.id === user.id)) {
+        return prev; // Already exists
+      }
+      return [...prev, user];
+    });
+  }, []);
+
   const value: AppContextValue = {
     currentUser,
     users,
@@ -514,6 +540,8 @@ export function AppProvider({ children }: AppProviderProps) {
     loginById,
     createAndLoginUser,
     setShowLoginModal,
+    searchUserById,
+    addContact,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
