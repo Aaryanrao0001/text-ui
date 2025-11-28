@@ -259,7 +259,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-**Aaryan Rao**
+**Goutam Kumar**
 
 [![GitHub](https://img. shields.io/badge/-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Aaryanrao0001)
 
