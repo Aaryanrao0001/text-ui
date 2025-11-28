@@ -25,30 +25,50 @@ export function LoginModal({
   const [newUserName, setNewUserName] = useState('');
   const [createdUser, setCreatedUser] = useState<User | null>(null);
   const [loginError, setLoginError] = useState('');
+  const [createError, setCreateError] = useState('');
   const [copied, setCopied] = useState(false);
 
   const handleLoginById = async () => {
     if (!loginId.trim() || isLoading) return;
     setLoginError('');
-    const success = await onLoginById(loginId.trim());
-    if (!success) {
-      setLoginError('Invalid ID. Please check and try again.');
+    try {
+      // debug log
+      // console.log('Attempt login by id:', loginId.trim());
+      const success = await onLoginById(loginId.trim());
+      if (!success) {
+        setLoginError('Invalid ID. Please check and try again.');
+      } else {
+        // close modal on success (parent may also handle)
+        setLoginId('');
+        onClose();
+      }
+    } catch (err: any) {
+      console.error('Login error', err);
+      setLoginError(err?.message || 'Login failed. Please try again.');
     }
   };
 
   const handleCreate = async () => {
     if (!newUserName.trim() || isLoading) return;
-    const user = await onCreate(newUserName.trim());
-    if (user) {
-      setCreatedUser(user);
-      setView('success');
+    setCreateError('');
+    try {
+      const user = await onCreate(newUserName.trim());
+      if (user) {
+        setCreatedUser(user);
+        setView('success');
+      } else {
+        setCreateError('Failed to create account. Please try again.');
+      }
+    } catch (err: any) {
+      console.error('Create user error', err);
+      setCreateError(err?.message || 'Failed to create account. Please try again.');
     }
   };
 
   const handleCopyId = async () => {
     if (!createdUser) return;
     try {
-      await navigator.clipboard.writeText(createdUser.id);
+      await navigator.clipboard.writeText(String(createdUser.id));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -61,6 +81,7 @@ export function LoginModal({
     setNewUserName('');
     setLoginId('');
     setLoginError('');
+    setCreateError('');
     setView('login');
     setCopied(false);
     onClose();
@@ -85,6 +106,7 @@ export function LoginModal({
     setNewUserName('');
     setLoginId('');
     setLoginError('');
+    setCreateError('');
   };
 
   return (
@@ -116,11 +138,11 @@ export function LoginModal({
                 <div className={styles.successBox}>
                   <div className={styles.successIcon}>🎉</div>
                   <h3 className={styles.successTitle}>Account Created!</h3>
-                  <p className={styles.welcomeText}>Welcome, {createdUser.username}!</p>
-                  
+                  <p className={styles.welcomeText}>Welcome, {createdUser.name ?? createdUser.username ?? 'User'}!</p>
+
                   <label className={styles.idLabel}>Your unique ID:</label>
                   <div className={styles.idDisplay}>
-                    <span className={styles.idValue}>{createdUser.id}</span>
+                    <span className={styles.idValue}>{String(createdUser.id)}</span>
                     <button
                       className={`${styles.copyButton} ${copied ? styles.copied : ''}`}
                       onClick={handleCopyId}
@@ -129,11 +151,11 @@ export function LoginModal({
                       {copied ? '✓' : '📋'}
                     </button>
                   </div>
-                  
+
                   <p className={styles.warningText}>
                     ⚠️ Save this ID! You'll need it to login.
                   </p>
-                  
+
                   <button
                     className={styles.primaryButton}
                     onClick={handleProceedToChat}
@@ -153,7 +175,9 @@ export function LoginModal({
                     onKeyDown={handleKeyDownCreate}
                     autoFocus
                     disabled={isLoading}
+                    aria-label="new-user-name"
                   />
+                  {createError && <p className={styles.errorText}>{createError}</p>}
                   <div className={styles.buttonGroup}>
                     <button
                       className={styles.secondaryButton}
@@ -186,6 +210,7 @@ export function LoginModal({
                     onKeyDown={handleKeyDownLogin}
                     autoFocus
                     disabled={isLoading}
+                    aria-label="login-id"
                   />
                   {loginError && (
                     <p className={styles.errorText}>{loginError}</p>

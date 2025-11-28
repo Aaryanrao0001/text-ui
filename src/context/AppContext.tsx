@@ -40,18 +40,20 @@ function toUiUser(apiUser: ApiUser): User {
 
 // Convert API message to UI Message type
 function toUiMessage(apiMessage: ApiMessage): Message {
+  const decryptedText = apiMessage.decrypted ?? '';
   return {
     id: String(apiMessage.id),
-    content: apiMessage.decrypted,
+    content: decryptedText,
     senderId: String(apiMessage.sender_id),
     receiverId: String(apiMessage.recipient_id),
     timestamp: new Date(apiMessage.timestamp),
     status: 'delivered',
     encrypted: true,
     read: apiMessage.read,
-    decrypted: apiMessage.decrypted,
+    decrypted: decryptedText,
   };
 }
+
 
 // Get a random greeting message
 function getRandomGreeting(): string {
@@ -467,15 +469,17 @@ export function AppProvider({ children }: AppProviderProps) {
       if (!userMessages || userMessages.length === 0) return undefined;
 
       const lastMsg = userMessages[userMessages.length - 1];
+      const lastContent = lastMsg?.content ?? '';
       const timeStr = new Date(lastMsg.timestamp).toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
       });
 
       return {
-        text: lastMsg.content.length > 30 ? `${lastMsg.content.slice(0, 30)}...` : lastMsg.content,
+        text: lastContent.length > 30 ? `${lastContent.slice(0, 30)}...` : lastContent,
         timestamp: timeStr,
       };
+
     },
     [messages, contactSummaries]
   );
