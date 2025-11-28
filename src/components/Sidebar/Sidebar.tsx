@@ -76,6 +76,14 @@ export function Sidebar({
     setSearchError('');
   };
 
+  const handleOpenChat = () => {
+    if (!searchedUser) return;
+    
+    onSelectUser(searchedUser.id);
+    setSearchedUser(null);
+    setSearchQuery('');
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setSearchedUser(null);
@@ -141,11 +149,7 @@ export function Sidebar({
             {isAlreadyContact ? (
               <button
                 className={styles.alreadyContactButton}
-                onClick={() => {
-                  onSelectUser(searchedUser.id);
-                  setSearchedUser(null);
-                  setSearchQuery('');
-                }}
+                onClick={handleOpenChat}
               >
                 Open Chat
               </button>
