@@ -12,6 +12,9 @@ interface SidebarProps {
   getLastMessage?: (userId: string) => { text: string; timestamp: string } | undefined;
   getUnreadCount?: (userId: string) => number;
   isOpen?: boolean;
+  searchUserById?: (userId: string) => Promise<User | null>;
+  addContact?: (user: User) => void;
+  currentUserId?: string;
 }
 
 export function Sidebar({
@@ -22,12 +25,65 @@ export function Sidebar({
   getLastMessage,
   getUnreadCount,
   isOpen = true,
+  searchUserById,
+  addContact,
+  currentUserId,
 }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchedUser, setSearchedUser] = useState<User | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
+  // Check if search query is a valid user ID (positive integer)
+  const isIdSearch = /^\d+$/.test(searchQuery.trim()) && parseInt(searchQuery.trim(), 10) > 0;
 
   const filteredUsers = users.filter(user =>
     user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleSearchById = async () => {
+    if (!searchUserById || !isIdSearch) return;
+    
+    setIsSearching(true);
+    setSearchError('');
+    setSearchedUser(null);
+    
+    try {
+      const user = await searchUserById(searchQuery.trim());
+      if (user) {
+        // Check if this is the current user
+        if (user.id === currentUserId) {
+          setSearchError('You cannot add yourself as a contact');
+        } else {
+          setSearchedUser(user);
+        }
+      } else {
+        setSearchError('User not found');
+      }
+    } catch {
+      setSearchError('Failed to search for user');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleAddContact = () => {
+    if (!addContact || !searchedUser) return;
+    
+    addContact(searchedUser);
+    setSearchedUser(null);
+    setSearchQuery('');
+    setSearchError('');
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setSearchedUser(null);
+    setSearchError('');
+  };
+
+  // Check if searched user already exists in contacts
+  const isAlreadyContact = searchedUser && users.some(u => u.id === searchedUser.id);
 
   return (
     <motion.aside
@@ -41,14 +97,68 @@ export function Sidebar({
           <input
             type="text"
             className={styles.searchInput}
-            placeholder="Search contacts..."
+            placeholder="Search contacts or enter ID..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
           />
           <svg className={styles.searchIcon} viewBox="0 0 24 24">
             <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
           </svg>
         </div>
+
+        {/* Search by ID button */}
+        {isIdSearch && searchUserById && !searchedUser && (
+          <button
+            className={styles.searchByIdButton}
+            onClick={handleSearchById}
+            disabled={isSearching}
+          >
+            {isSearching ? (
+              <span className={styles.searchingIndicator}>Searching...</span>
+            ) : (
+              <>Search for user #{searchQuery.trim()}</>
+            )}
+          </button>
+        )}
+
+        {/* Search error */}
+        {searchError && (
+          <div className={styles.searchError}>{searchError}</div>
+        )}
+
+        {/* Found user result */}
+        {searchedUser && (
+          <div className={styles.searchResult}>
+            <div className={styles.searchResultUser}>
+              <div className={styles.searchResultAvatar}>
+                {searchedUser.username.charAt(0).toUpperCase()}
+              </div>
+              <div className={styles.searchResultInfo}>
+                <span className={styles.searchResultName}>{searchedUser.username}</span>
+                <span className={styles.searchResultId}>ID: {searchedUser.id}</span>
+              </div>
+            </div>
+            {isAlreadyContact ? (
+              <button
+                className={styles.alreadyContactButton}
+                onClick={() => {
+                  onSelectUser(searchedUser.id);
+                  setSearchedUser(null);
+                  setSearchQuery('');
+                }}
+              >
+                Open Chat
+              </button>
+            ) : (
+              <button
+                className={styles.addContactButton}
+                onClick={handleAddContact}
+              >
+                Add Contact
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className={styles.sectionLabel}>Contacts</div>

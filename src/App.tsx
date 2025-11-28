@@ -26,6 +26,8 @@ function App() {
     loginById,
     createAndLoginUser,
     setShowLoginModal,
+    searchUserById,
+    addContact,
   } = useApp();
 
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -131,6 +133,9 @@ function App() {
           getLastMessage={getLastMessage}
           getUnreadCount={getUnreadCount}
           isOpen={isSidebarOpen}
+          searchUserById={searchUserById}
+          addContact={addContact}
+          currentUserId={currentUserId}
         />
 
         <Conversation
